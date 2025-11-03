@@ -140,9 +140,19 @@ ceros y valores especiales como es el Inf.
   * Emplea después la función `na.omit` para quedarnos solo con las filas con datos completos en un nuevo data frame `clean_iris`.
 
 ```{r Solucion ejercicio 3, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
+#Numero de observaciones completas
+numero<-sum(complete.cases(dirty_iris))
+numero
+#Porcentaje de observaciones completas
+porcentaje<-numero/nrow(dirty_iris)*100
+print(paste(round(porcentaje,2),"%"))
 
+#Nuevo data frame limpio
+
+clean_iris<-dirty_iris %>% na.omit()
 
 ```
+El porcentaje no es tan elevado, en un caso real no podríamos eliminar esas observaciones, deberíamos imputar los datos faltantes.
 
 # Detección de outliers univariante
 
