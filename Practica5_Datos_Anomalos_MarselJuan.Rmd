@@ -172,34 +172,130 @@ Hazlo para el data frame con observaciones completas `clean_iris` (que no tiene 
   * Compara los resultados para los dos conjuntos en la variable `Petal.Length`.
 
 ```{r , include = TRUE}
+#aplicamos summary a las variables numericas
+clean_iris %>% summarise(
+  
+  across(
+    
+    where(is.numeric),~
+    c(
+      
+      media = mean(.),
+      desviacion_estandar = sd(.),
+      mediana = median(.),
+      MADM= mad(.),
+      IQR = IQR(.)
+      
+      )
+    
+    )
+  
+  )
+
+#Y ahora para el dirty
+
+dirty_iris %>% summarise(
+  
+  across(
+    
+    where(is.numeric), ~ 
+    c(
+      
+      media = mean(. ,na.rm=T),
+      desviacion_estandar = sd(. ,na.rm=T),
+      mediana = median(.,na.rm = T),
+      MADM= mad(.,na.rm = T),
+      IQR = IQR(.,na.rm=T)
+      
+      )
+    
+    )
+  
+  )
 
 ```
+Obtenemos valores distintos ya que en el clean tenemos datos completos, pero en el dirty tenemos más datos.
 
+Para la MADM hemos utilizado `mad` pero se nos pide que la construyamos nosotros también
+```{r}
+#Función MADM
+MADM<- function (columna){
+  return(median(abs(columna-median(columna))*1.4826))
+}
+#comprobamos que da igual
+mad(clean_iris$Petal.Length)
+MADM(clean_iris$Petal.Length)
+```
 
 ## Ejercicio 5: Métodos de detección de outliers
 
 Escribe una función que detecte los outliers de un vector $x$ para cada uno de los siguientes métodos de detección de outliers univariantes (todas las funciones tienen que ser robustas a la presencia de valores NA).
 
   * **Regla 3 sigma** `reglasigma(x)`: Considera que los datos siguen una distribución gaussiana. Datos típicos caracterizados por la media y la dispersión por la varianza. Valores por encima de 3 desviaciones típicas se consideran outliers.
+```{r}
+#3 sigma
+
+tsigma<-function(x){
+
+    sigma<-sd(x)
+    media<-mean(x)
+    outlier<-x[abs(x-media)>3*sigma]
+
+  
+    return(outlier)
+}
+
+tsigma(clean_iris$Petal.Length)
+```
+  
 
   * **Identificador Hampel** `reglahampel(x)`: Utiliza estimadores robustos y no presupone que los datos siguen una distribución gaussiana. Datos típicos caracterizados por la mediana y la dispersión por la _median absolute deviation from the median_ (MADM). Valores por encima de 3 MADM se consideran outliers.
 
+```{r}
+#Identificador Hampel
+
+Hampel<-function(x){
+
+  M<-mad(x)
+  mediana<-median(x)
+  outlier<-x[abs(x-mediana)>3*M]
+  
+  return(outlier)
+}
+
+Hampel(clean_iris$Petal.Length)
+```
+
   * **Regla boxplot** `reglaboxplot(x)`: A partir de los datos se calcula su diagrama de caja (boxplot) y se definen como datos típicos superiores hasta el cuartil 75%, $x_s$; datos típicos inferiores hasta el cuartil 25%, $x_i$; y la dispersión se define como el rango intercuartílico ($IQR= x_s-x_i$). Valores por encima de $x_s+1.5\cdot IQR$ o por debajo de $x_i-1.5\cdot IQR$ se consideran outliers. Usa la función `quantile` para calcular los cuartiles.
+```{r}
+#Box Plot
+BoxPlot<- function(x){
+  Percentiles<-quantile(x, probs = seq(0,1,0.25))
+  x_s<-Percentiles[4]
+  x_i<-Percentiles[2]
+  IQR<-x_s-x_i
+  sup<-x_s+1.5*IQR
+  inf<-x_i-1.5*IQR
+  outliers<-x[x>sup|x<inf]
+  return(outliers)
+}
+BoxPlot(clean_iris$Petal.Length)
+```
+  
 
   * **Percentiles** `reglapercentil(x)`: Cualquier valor que esté fuera del rango del percentil 5% y 95% se puede considerar como atípico. Usa la función `quantile` para calcular los percentiles.
 
 ```{r , include = FALSE}
-# Regla 3 sigma
-
-
-# Identificador Hampel
-
-
-
-# Regla boxplot
-
-
 # Percentiles
+Percentiles<- function(x){
+  Percentiles<-quantile(x, probs = c(0.05,0.95))
+  x_s<-Percentiles[2]
+  x_i<-Percentiles[1]
+  outliers<-x[x>x_s|x<x_i]
+  return(outliers)
+}
+
+Percentiles(clean_iris$Petal.Length)
 
 ```
 
