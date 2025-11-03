@@ -77,8 +77,28 @@ Inspecciona visualmente los valores del conjunto de datos (`View`) y ordena de m
 
 ```{r Solucion ejercicio 1, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
 # Medidas con valores faltantes, longitudes negativas y cero
+View(dirty_iris)
+summary(dirty_iris)
 
+#ordenamos cada variable con arrange() del paquete dyplr 
+dirty_iris %>% arrange(Sepal.Length) 
+dirty_iris %>% arrange(Sepal.Width) 
+dirty_iris %>% arrange(Petal.Length) 
+dirty_iris %>% arrange(Petal.Width)
+
+#de mayor a menor con desc()
+
+dirty_iris %>% arrange(desc(Sepal.Length))
+dirty_iris %>% arrange(desc(Sepal.Width)) 
+dirty_iris %>% arrange(desc(Petal.Length)) 
+dirty_iris %>% arrange(desc(Petal.Width))
 ```
+
+Podemos observar valores extraños, lo primero que nos llama la atención es la presencia de varios NA. Lo siguiente, resultado de ordenar los datos nos percatamos de varias anomalías:
+
+- Valores extrañamente grandes para las partes del sépalo y pétalo de una flor (lirio), por ejemplo: 63.000 en Petal.Lenght (podría ser un outlier) o incluso Inf en Petal.Width
+- Valores imposibles como, por ejemplo, 0 en Petal.Lenght o -3 en Sepal Width.
+
 
 ## Ejercicio 2: Valores especiales
 
@@ -99,9 +119,20 @@ Nota: Puedes reemplazar los valores para cada variable del dataframe usando `mut
 ```{r Solucion ejercicio 2, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
 # DEBEMOS ELIMINAR TAMBIEN LOS VALROES IGUALES A CERO YA QUE SE TRATA DE LONGITUDES DE PARTES DE UNA FLOR. NO PUEDEN SER O
 
+dirty_iris <- dirty_iris %>%  mutate(
+  #Utilizo across para recorrerme todas las columnas
+  across(
+    #Donde la variable sea numerica aplico este filtrado
+    # la virgulilla (~) sirve para declarar una función anónima 
+    # el punto (.) para indicar dónde va la variable que le meto a la función anónima
+    where(is.numeric), ~ ifelse(!is.finite(.)|.<=0,NA,.)
+    )
+  )
+summary(dirty_iris)
 
 ```
-
+Como podemos gracias a `summary()`, hemos eliminado los valores nefativos,
+ceros y valores especiales como es el Inf.
 
 ## Ejercicio 3: Valores perdidos y observaciones completas
 
@@ -109,6 +140,7 @@ Nota: Puedes reemplazar los valores para cada variable del dataframe usando `mut
   * Emplea después la función `na.omit` para quedarnos solo con las filas con datos completos en un nuevo data frame `clean_iris`.
 
 ```{r Solucion ejercicio 3, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
+
 
 ```
 
